@@ -1,3 +1,5 @@
+import { GESTURE_CONFIG } from '../config/gestureConfig';
+
 export interface GestureResult {
   isHandRaised: boolean;
   confidence: number;
@@ -6,12 +8,8 @@ export interface GestureResult {
   isPoseLost: boolean;
 }
 
-const VISIBILITY_THRESHOLD = 0.5;
-const HAND_RAISE_CONFIDENCE_THRESHOLD = 0.7;
-
 class GestureService {
   private frameBuffer: boolean[] = [];
-  private bufferSize: number = 10;
 
   private getJointVisibility(landmarks: any[], jointIndices: number[]): number {
     if (!landmarks) return 0;
@@ -28,11 +26,11 @@ class GestureService {
     const target = landmarks[targetIdx];
     
     if (!source || !target) return false;
-    if (source.visibility < VISIBILITY_THRESHOLD || target.visibility < VISIBILITY_THRESHOLD) {
+    if (source.visibility < GESTURE_CONFIG.visibilityThreshold || target.visibility < GESTURE_CONFIG.visibilityThreshold) {
       return false;
     }
 
-    return source.y < target.y - 0.05;
+    return source.y < target.y - GESTURE_CONFIG.wristShoulderOffset;
   }
 
   analyze(landmarks: any[]): GestureResult {
@@ -60,7 +58,7 @@ class GestureService {
       rightHipIdx,
     ]);
 
-    if (bodyVisibility < VISIBILITY_THRESHOLD) {
+    if (bodyVisibility < GESTURE_CONFIG.visibilityThreshold) {
       return {
         isHandRaised: false,
         confidence: 0,
@@ -84,7 +82,7 @@ class GestureService {
     const bothHandsRaised = leftWristAboveShoulder && rightWristAboveShoulder;
 
     this.frameBuffer.push(bothHandsRaised);
-    if (this.frameBuffer.length > this.bufferSize) {
+    if (this.frameBuffer.length > GESTURE_CONFIG.frameBuffer) {
       this.frameBuffer.shift();
     }
 
@@ -92,7 +90,7 @@ class GestureService {
     const confidence = raisedFrames / this.frameBuffer.length;
 
     return {
-      isHandRaised: confidence >= HAND_RAISE_CONFIDENCE_THRESHOLD,
+      isHandRaised: confidence >= GESTURE_CONFIG.handRaiseConfidenceThreshold,
       confidence,
       leftWristAboveShoulder,
       rightWristAboveShoulder,

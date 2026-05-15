@@ -7,6 +7,7 @@ import { Camera, AlertCircle, Dumbbell, Hand } from 'lucide-react';
 import { ExerciseConfig, exercises } from '../config/exercises';
 import { bodyTypeEngine, BodyType, BodyTypeResult } from '../services/bodyTypeEngine';
 import { gestureService, GestureResult } from '../services/gestureService';
+import { GESTURE_CONFIG } from '../config/gestureConfig';
 
 interface CalibrationScreenProps {
   selectedExercise: ExerciseConfig;
@@ -36,7 +37,7 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
     isPoseLost: false,
   });
   const [countdownActive, setCountdownActive] = useState(false);
-  const [countdownSeconds, setCountdownSeconds] = useState(3);
+  const [countdownSeconds, setCountdownSeconds] = useState(GESTURE_CONFIG.countdownDuration / 1000);
   
   const frameId = useRef<number>(0);
   const lastProcessTime = useRef<number>(0);
@@ -114,7 +115,7 @@ export const CalibrationScreen: React.FC<CalibrationScreenProps> = ({
   useEffect(() => {
     if (gestureResult.isHandRaised && result.isReady && !gestureResult.isPoseLost && !countdownActive) {
       setCountdownActive(true);
-      setCountdownSeconds(3);
+      setCountdownSeconds(GESTURE_CONFIG.countdownDuration / 1000);
     } else if (!gestureResult.isHandRaised || gestureResult.isPoseLost) {
       if (countdownActive) {
         setCountdownActive(false);
